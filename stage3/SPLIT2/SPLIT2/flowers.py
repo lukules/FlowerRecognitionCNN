@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropou
 from tensorflow.keras.regularizers import l2
 
 data_dir = 'flowers'
-img_size = (128, 128)  # Ensure numpy arrays are reshaped to this size if not already
+img_size = (128, 128)  
 batch_size = 16
 channels = 3
 img_shape = (img_size[0], img_size[1], channels)
@@ -33,7 +33,7 @@ def generate_data_paths(data_dir):
 filepaths, labels = generate_data_paths(data_dir)
 df = pd.DataFrame({'filepaths': filepaths, 'labels': labels})
 
-# Create consistent one-hot encoding for labels
+# one-hot encoding for labels
 label_encoder = pd.get_dummies(df['labels']).columns
 def encode_labels(labels):
     return pd.get_dummies(labels, columns=label_encoder).reindex(columns=label_encoder, fill_value=0).values
@@ -42,8 +42,8 @@ train_df, dummy_df = train_test_split(df, train_size=0.8, shuffle=True, random_s
 valid_df, test_df = train_test_split(dummy_df, train_size=0.5, shuffle=True, random_state=123)
 
 def load_npy(file_path, label):
-    image = np.load(file_path)  # Load the numpy array from .npy file
-    image = np.resize(image, img_shape)  # Resize to expected shape
+    image = np.load(file_path)  
+    image = np.resize(image, img_shape)
     return image, label
 
 def data_generator(df, batch_size=32):
@@ -54,14 +54,14 @@ def data_generator(df, batch_size=32):
             batch_df = df.iloc[i:i + batch_size]
             images, labels = zip(*[load_npy(fp, lb) for fp, lb in zip(batch_df['filepaths'], batch_df['labels'])])
             images = np.array(images)
-            labels = encode_labels(labels)  # Use consistent encoding
+            labels = encode_labels(labels) 
             yield images, labels
 
-# Prepare data generators
+# data generators
 train_gen = data_generator(train_df, batch_size)
 valid_gen = data_generator(valid_df, batch_size)
 
-# Building the CNN model
+#  CNN model
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=img_shape),
     MaxPooling2D(pool_size=(2, 2)),
@@ -78,7 +78,7 @@ model = Sequential([
     Flatten(),
     Dense(128, activation='relu', kernel_regularizer=l2(0.01)),
     Dropout(0.5),
-    Dense(len(label_encoder), activation='softmax')  # Dynamically adjust output layer based on unique labels
+    Dense(len(label_encoder), activation='softmax')  
 ])
 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])

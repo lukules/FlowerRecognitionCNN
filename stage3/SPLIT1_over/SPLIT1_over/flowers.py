@@ -74,7 +74,7 @@ valid_gen = tr_gen.flow_from_dataframe(valid_df,
                                        shuffle=True,
                                        batch_size=batch_size)
 
-# Budowanie modelu CNN
+# CNN
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=img_shape),
     MaxPooling2D(pool_size=(2, 2)),

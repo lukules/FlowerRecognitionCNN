@@ -10,7 +10,6 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropou
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.regularizers import l2
 
-# Configurations
 data_dir = 'flowers_npy'
 img_size = (128, 128)
 batch_size = 16
@@ -22,7 +21,7 @@ epochs = 20
 def generate_data_paths(data_dir):
     filepaths = []
     labels = []
-    opened_folders = []  # List to store the names of opened folders
+    opened_folders = [] 
 
     if not os.path.exists(data_dir):
         raise ValueError(f"Data directory {data_dir} does not exist.")
@@ -38,7 +37,7 @@ def generate_data_paths(data_dir):
         foldpath = os.path.join(data_dir, fold)
         if not os.path.isdir(foldpath):
             continue
-        opened_folders.append(fold)  # Log the folder being opened
+        opened_folders.append(fold) 
         filelist = [os.path.join(foldpath, file) for file in os.listdir(foldpath) if file.endswith('.npy')]
         if not filelist:
             print(f"No .npy files found in {foldpath}")
@@ -46,7 +45,7 @@ def generate_data_paths(data_dir):
         min_count = min(min_count, len(filelist))
 
     for fold in class_files:
-        class_files[fold] = class_files[fold][:min_count]  # Ensure uniform class distribution
+        class_files[fold] = class_files[fold][:min_count]  
         for file in class_files[fold]:
             filepaths.append(file)
             labels.append(fold)
@@ -54,7 +53,6 @@ def generate_data_paths(data_dir):
     if not filepaths:
         raise ValueError("No valid file paths found.")
 
-    # Log the opened folders to a file
     with open('opened_folders.log', 'w') as log_file:
         for folder in opened_folders:
             log_file.write(f"{folder}\n")
@@ -63,19 +61,16 @@ def generate_data_paths(data_dir):
 
 
 filepaths, labels = generate_data_paths(data_dir)
-print(f"Total files found: {len(filepaths)}")  # Debugging print statement
+print(f"Total files found: {len(filepaths)}")  
 df = pd.DataFrame({'filepaths': filepaths, 'labels': labels})
 
-# Map class names to numerical labels
 class_names = sorted(df['labels'].unique())
 class_mapping = {label: idx for idx, label in enumerate(class_names)}
 df['labels'] = df['labels'].map(class_mapping)
 
-# SPLIT 3: Use part of TRAIN set as VAL set, keeping TRAIN and TEST the same as before
 train_df, test_df = train_test_split(df, train_size=0.8, shuffle=True, random_state=123)
 train_df, valid_df = train_test_split(train_df, train_size=0.875, shuffle=True, random_state=123)  # 0.875 * 0.8 = 0.7
 
-# Log dataset distributions
 with open('dataset_distribution_split3.log', 'w') as log_file:
     log_file.write("Training set distribution:\n")
     log_file.write(str(train_df['labels'].value_counts()) + "\n\n")
@@ -84,13 +79,11 @@ with open('dataset_distribution_split3.log', 'w') as log_file:
     log_file.write("Test set distribution:\n")
     log_file.write(str(test_df['labels'].value_counts()) + "\n\n")
 
-# Save the splits for reproducibility
 train_df.to_csv('train_split3.csv', index=False)
 valid_df.to_csv('valid_split3.csv', index=False)
 test_df.to_csv('test_split3.csv', index=False)
 
 
-# Function to load and preprocess images
 def load_npy(file_path, label):
     image = np.load(file_path)
     image = np.resize(image, img_shape)
@@ -98,15 +91,13 @@ def load_npy(file_path, label):
     return image, label
 
 
-# Data generator with advanced augmentation
 def data_generator(df, batch_size=32, augment=False):
     if augment:
         datagen = ImageDataGenerator(
-            rotation_range=10,  # Reduced rotation
-            width_shift_range=0.1,  # Reduced width shift
-            height_shift_range=0.1,  # Reduced height shift
-            shear_range=0.1,  # Reduced shear
-            zoom_range=0.1,  # Reduced zoom
+            rotation_range=10,  
+            width_shift_range=0.1,  
+            height_shift_range=0.1,  
+            shear_range=0.1,
             horizontal_flip=True,
             # brightness_range=[0.8, 1.2],  # Adjust brightness
             fill_mode='nearest'
@@ -123,7 +114,6 @@ def data_generator(df, batch_size=32, augment=False):
             labels = np.array(labels, dtype='int32')
             images, labels = next(datagen.flow(images, labels, batch_size=batch_size))
 
-            # Log the labels being processed
             with open('labels_processed.log', 'a') as log_file:
                 log_file.write(
                     f"Batch {i // batch_size}: {list(batch_df['labels'].value_counts().to_dict().items())}\n")
@@ -131,11 +121,9 @@ def data_generator(df, batch_size=32, augment=False):
             yield images, labels
 
 
-# Data generators
 train_gen = data_generator(train_df, batch_size, augment=True)
 valid_gen = data_generator(valid_df, batch_size)
 
-# Building the CNN model
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=img_shape),
     MaxPooling2D(pool_size=(2, 2)),
@@ -152,7 +140,7 @@ model = Sequential([
     Flatten(),
     Dense(128, activation='relu', kernel_regularizer=l2(0.01)),
     Dropout(0.5),
-    Dense(len(class_names), activation='softmax')  # Use number of classes as output units
+    Dense(len(class_names), activation='softmax')  
 ])
 
 model.compile(optimizer=Adam(learning_rate=0.0001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])

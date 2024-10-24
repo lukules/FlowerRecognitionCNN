@@ -19,7 +19,7 @@ img_shape = (img_size[0], img_size[1], channels)
 def generate_data_paths(data_dir):
     filepaths = []
     labels = []
-    opened_folders = []  # List to store the names of opened folders
+    opened_folders = []  
 
     if not os.path.exists(data_dir):
         raise ValueError(f"Data directory {data_dir} does not exist.")
@@ -35,7 +35,7 @@ def generate_data_paths(data_dir):
         foldpath = os.path.join(data_dir, fold)
         if not os.path.isdir(foldpath):
             continue
-        opened_folders.append(fold)  # Log the folder being opened
+        opened_folders.append(fold)  
         filelist = [os.path.join(foldpath, file) for file in os.listdir(foldpath) if file.endswith('.npy')]
         if not filelist:
             print(f"No .npy files found in {foldpath}")
@@ -43,7 +43,7 @@ def generate_data_paths(data_dir):
         min_count = min(min_count, len(filelist))
 
     for fold in class_files:
-        class_files[fold] = class_files[fold][:min_count]  # Ensure uniform class distribution
+        class_files[fold] = class_files[fold][:min_count]  
         for file in class_files[fold]:
             filepaths.append(file)
             labels.append(fold)
@@ -51,7 +51,6 @@ def generate_data_paths(data_dir):
     if not filepaths:
         raise ValueError("No valid file paths found.")
 
-    # Log the opened folders to a file
     with open('opened_folders.log', 'w') as log_file:
         for folder in opened_folders:
             log_file.write(f"{folder}\n")
@@ -59,10 +58,9 @@ def generate_data_paths(data_dir):
     return filepaths, labels
 
 filepaths, labels = generate_data_paths(data_dir)
-print(f"Total files found: {len(filepaths)}")  # Debugging print statement
+print(f"Total files found: {len(filepaths)}")  
 df = pd.DataFrame({'filepaths': filepaths, 'labels': labels})
 
-# Map class names to numerical labels
 class_names = sorted(df['labels'].unique())
 class_mapping = {label: idx for idx, label in enumerate(class_names)}
 df['labels'] = df['labels'].map(class_mapping)
